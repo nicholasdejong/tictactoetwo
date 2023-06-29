@@ -22,3 +22,13 @@ impl std::ops::Not for Piece {
         }
     }
 }
+
+impl<'a> std::ops::Not for &'a Piece {
+    type Output = Self;
+    fn not(self) -> Self::Output {
+        match self {
+            Piece::O => &Piece::X,
+            Piece::X => &Piece::O,
+        }
+    }
+}

@@ -1,4 +1,10 @@
-use crate::{board::Board, piece::Piece};
+use crate::{
+    board::{Board, Move},
+    eval::Eval,
+    piece::Piece,
+};
+use colored::{ColoredString, Colorize};
+use rand::prelude::*;
 
 pub struct Coord(String);
 
@@ -38,14 +44,25 @@ impl Coord {
     }
 }
 
+pub fn color_move(m: &Move) -> ColoredString {
+    let (index, eval) = (m.index(), m.eval());
+    let coord = Coord::from(index);
+    let colored_string = match eval {
+        Eval::Winning(_) => coord.to_string().green(),
+        Eval::Losing(_) => coord.to_string().red(),
+        Eval::Draw => coord.to_string().normal(),
+    };
+    colored_string
+}
+
 pub fn print_state(b: &Board) {
     println!("   Tic Tac Toe");
     println!("{b}");
-    println!("\nEvaluation: {}", b.search()[0].eval().str(&b.turn()));
-    let mut moves = b
-        .moves()
+    let search = b.search();
+    println!("\nEvaluation: {}", search[0].eval().str(&b.turn()));
+    let mut moves = search
         .iter()
-        .map(|(i, _)| format!("{}, ", Coord::from(*i)))
+        .map(|m| format!("{}, ", color_move(m)))
         .collect::<String>();
     moves.pop();
     moves.pop();
@@ -53,6 +70,7 @@ pub fn print_state(b: &Board) {
 }
 
 pub fn init() {
+    let mut rng = thread_rng();
     let mut b = Board::default();
     let mut ln = String::new();
     println!("Tic Tac Toe. Choose Player or Computer to go first: ");
@@ -72,7 +90,13 @@ pub fn init() {
             break;
         }
         if b.turn() == computer {
-            let mv = b.search()[0].index();
+            let tryhard = rng.gen_bool(0.75); // Tryhard 75% of the time
+            let moves = b.search();
+            let mv = if tryhard {
+                moves[0].index()
+            } else {
+                moves[rng.gen_range(0..moves.len())].index()
+            };
             b.0[mv] = Some(b.turn());
         } else {
             println!("{esc}c", esc = 27 as char);
