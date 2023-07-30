@@ -1,4 +1,3 @@
-use crate::cli::Coord;
 use crate::eval::Eval;
 use crate::piece::Piece;
 
@@ -20,22 +19,24 @@ pub struct Board(pub [Option<Piece>; 9]);
 
 impl std::fmt::Display for Board {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut result = String::from("  ┌───┬───┬───┐\na │");
-        for (index, piece) in self.0.iter().enumerate() {
-            let piece = match piece {
-                Some(p) => format!("{p}"),
-                None => String::from(" "),
+        let mut result = String::from("  ┌───┬───┬───┐\n");
+        for (index, row) in self.0.chunks(3).enumerate() {
+            result.push((97 + index as u8) as char);
+            result.push_str(" │");
+            for piece in row {
+                if let Some(p) = piece {
+                    result.push_str(format!(" {p} │").as_str());
+                } else {
+                    result.push_str("   │");
+                }
             };
-            if (index + 1) % 3 == 0 && index != self.0.len() - 1 {
-                result = format!(
-                    "{result} {piece} │\n  ├───┼───┼───┤\n{} │",
-                    Coord::from(index + 1).row()
-                );
+            if index == 2 {
+                result.push_str("\n  └───┴───┴───┘\n    1   2   3");
             } else {
-                result = format!("{result} {piece} │");
+                result.push_str("\n  ├───┼───┼───┤\n");
             }
         }
-        write!(f, "{result}\n  └───┴───┴───┘\n    1   2   3")
+        write!(f, "{result}")
     }
 }
 
@@ -141,7 +142,7 @@ impl Board {
 /// Crosses are represented with X or x.
 /// Naughts are represented with O or o.
 /// ```
-/// assert!(board!(X . O . X . O . X), board!(x . o . x . o . x));
+/// assert_eq!(board!(X . O . X . O . X), board!(x . o . x . o . x));
 /// ```
 #[macro_export]
 macro_rules! board {

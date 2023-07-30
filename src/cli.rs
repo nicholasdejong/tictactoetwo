@@ -97,7 +97,7 @@ pub fn init() {
             } else {
                 moves[rng.gen_range(0..moves.len())].index()
             };
-            b.0[mv] = Some(b.turn());
+            b.0[mv] = Some(computer);
         } else {
             println!("{esc}c", esc = 27 as char);
             print_state(&b);
@@ -110,7 +110,7 @@ pub fn init() {
             if b.0[index].is_some() {
                 panic!("Invalid move.");
             } else {
-                b.0[index] = Some(b.turn());
+                b.0[index] = Some(!computer);
             }
         }
     }
